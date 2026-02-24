@@ -5,6 +5,13 @@
     <meta charset="UTF-8">
     <title>CivicSense</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#138808">
+    <meta name="description" content="Smart Citizen Complaint System - Report civic issues and track resolutions">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="CivicSense">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/565/565547.png">
+    <link rel="manifest" href="manifest.json">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="style.css">
@@ -117,7 +124,7 @@
                 </div>
                 <p id="severityText">Severity: Not analyzed</p>
             </div>
-            <button class="submit" onclick="submitComplaint()">Submit Complaint</button>
+            <button class="submit" onclick="submitComplaint()">📤 Submit Complaint</button>
         </section>
 
         <section class="track-search glass">
@@ -217,6 +224,12 @@
         <p>Scan to report</p>
 
     </main>
+    <script>
+        // Register service worker for offline support
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js').catch(err => console.log('SW registration failed:', err));
+        }
+    </script>
     <script src="script.js"></script>
     <!-- 🤖 CHATBOT BUTTON -->
     <div id="chatbot-btn" onclick="toggleChat()">🤖</div>

@@ -70,7 +70,7 @@
 
         async function loadAdmin() {
 
-            const res = await fetch("/api/complaints?status=Pending");
+            const res = await fetch("/api/complaints?status=Pending&sort=popular");
             const data = await res.json();
 
             adminList.innerHTML = "";
@@ -80,7 +80,8 @@
      <div class="complaint">
        <b>ID:</b> ${c.cid}<br>
        <b>Category:</b> ${c.category}<br>
-       <b>Status:</b> ${c.status}<br><br>
+       <b>Status:</b> ${c.status}<br>
+       <b>Verifications:</b> ${c.verifications || 0}<br><br>
 
        <button class="approve" onclick="update('${c._id}','Approved')">Approve</button>
        <button class="reject" onclick="update('${c._id}','Rejected')">Reject</button>

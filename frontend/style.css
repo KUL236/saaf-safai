@@ -90,7 +90,30 @@ button {
 }
 
 .submit {
-    background: #00c853;
+    background: linear-gradient(135deg, #00c853, #1e88e5);
+    font-size: 16px;
+    font-weight: 600;
+    padding: 16px 24px;
+    box-shadow: 0 4px 15px rgba(0, 200, 83, 0.4);
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 200, 83, 0.6);
+}
+
+.submit:active {
+    transform: translateY(0);
+}
+
+.submit::before {
+    content: "📤";
+    font-size: 20px;
 }
 
 .map-box iframe {

@@ -22,52 +22,118 @@ function getLocation() {
     });
 }
 
-function submitComplaint() {
-    if (!desc.value || !lat) return alert("Fill all!");
-    active++; activeCount.innerText = active;
-    id++; cid.innerText = "#CS-" + id;
-
-    const div = document.createElement("div");
-    div.className = "complaint-card";
-    div.innerHTML = `<b>${category.value}</b><br>
-ID: #CS-${id}<br>${desc.value}<br>
-Status: Submitted`;
-    complaintList.appendChild(div);
-    desc.value = ""; preview.src = "";
-}
+// note: in the demo this still manipulates a local store; ideally POST to backend
 let complaintsDB = {}; // frontend demo DB
 
-function submitComplaint() {
-    if (!desc.value || !lat) return alert("Fill all!");
+// fetch global complaints sorted by verifications and display them
+async function loadComplaints() {
+    try {
+        const res = await fetch('/api/complaints?sort=popular');
+        const data = await res.json();
+        complaintList.innerHTML = '';
+        data.forEach(c => {
+            const div = document.createElement('div');
+            div.className = 'complaint-card';
+            div.innerHTML = `<b>${c.category}</b><br>
+ID: ${c.cid}<br>
+${c.description || ''}<br>
+Verifications: <span class="ver-count">${c.verifications || 0}</span><br>
+Status: ${c.status}<br>
+<button onclick="verifyDirect('${c._id}', this)">✔ Verify</button>`;
+            complaintList.appendChild(div);
+        });
+    } catch (err) {
+        console.error('Failed to load complaints', err);
+        complaintList.innerText = 'Unable to load complaints';
+    }
+}
+
+async function submitComplaint() {
+    if (!desc.value || !lat) return alert("Fill all fields!");
+    
     active++;
     activeCount.innerText = active;
     id++;
     const cidVal = "CS-" + id;
 
-    complaintsDB[cidVal] = {
+    const complaintData = {
+        cid: cidVal,
         category: category.value,
-        desc: desc.value,
-        status: "Submitted"
+        description: desc.value,
+        lat: lat,
+        lon: lon,
+        ward: ward.value || "Zone A",
+        status: "Submitted",
+        priority: "Normal"
     };
 
-    cid.innerText = "#" + cidVal;
+    try {
+        // Send to backend
+        const res = await fetch('/api/complaints', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(complaintData)
+        });
+        const saved = await res.json();
+        cid.innerText = "#" + saved.cid;
+        alert(`Complaint submitted! ID: ${saved.cid}`);
+    } catch (err) {
+        console.error('Submit failed:', err);
+        // still show it locally even if backend fails
+        cid.innerText = "#" + cidVal;
+    }
 
+    // local display
+    complaintsDB[cidVal] = complaintData;
     const div = document.createElement("div");
     div.className = "complaint-card";
     div.innerHTML = `<b>${category.value}</b><br>
-  ID: #${cidVal}<br>${desc.value}<br>Status: Submitted`;
+ID: #${cidVal}<br>${desc.value}<br>Status: Submitted`;
     complaintList.appendChild(div);
     desc.value = "";
+    preview.src = "";
 }
 
-function trackComplaint() {
+let lastTracked = null;
+
+// simple per‑user check stored in localStorage; prevents duplicate clicks in this browser
+function hasVerified(id) {
+    return localStorage.getItem(`verified_${id}`) === "1";
+}
+function markVerified(id) {
+    localStorage.setItem(`verified_${id}`, "1");
+}
+
+async function trackComplaint() {
     const val = trackId.value.trim();
-    if (complaintsDB[val]) {
+    if (!val) {
+        trackResult.innerText = "Enter an ID to track";
+        return;
+    }
+
+    // remove leading # if any
+    const idToQuery = val.replace(/^#/, "");
+
+    try {
+        const res = await fetch(`/api/complaints/${idToQuery}`);
+        if (!res.ok) throw new Error("Not found");
+        const data = await res.json();
+        lastTracked = data;
+        verifyCount = data.verifications || 0;
+        document.getElementById("verifyCount").innerText = verifyCount;
+
         trackResult.innerHTML = `
-      <b>Status:</b> ${complaintsDB[val].status}<br>
-      <b>Category:</b> ${complaintsDB[val].category}`;
-    } else {
+      <b>Status:</b> ${data.status}<br>
+      <b>Category:</b> ${data.category}<br>
+      <b>ID:</b> ${data.cid}<br>
+      <b>Verifications:</b> ${verifyCount}
+    `;
+        // disable the verify button if already clicked
+        const btn = document.querySelector(".crowd-box button");
+        if (btn) btn.disabled = hasVerified(data._id);
+    } catch (e) {
         trackResult.innerText = "❌ Complaint not found";
+        lastTracked = null;
     }
 }
 function share(platform) {
@@ -97,6 +163,9 @@ function startSLA(card) {
         if (time <= 0) { card.style.border = "2px solid red"; clearInterval(t); }
     }, 1000);
 }
+// call loadComplaints after DOM content loaded
+window.addEventListener('DOMContentLoaded', loadComplaints);
+
 const ctx = document.getElementById('zoneChart').getContext('2d');
 let chart = new Chart(ctx, {
     type: 'line',
@@ -122,6 +191,28 @@ let chart = new Chart(ctx, {
         }
     }
 });
+
+async function verifyDirect(id, btn) {
+    if (hasVerified(id)) {
+        alert('Already verified');
+        btn.disabled = true;
+        return;
+    }
+    try {
+        const res = await fetch(`/api/complaints/${id}/verify`, { method: 'PUT' });
+        const updated = await res.json();
+        // update the span in this card
+        const parent = btn.parentElement;
+        const span = parent.querySelector('.ver-count');
+        if (span) span.innerText = updated.verifications || 0;
+        markVerified(id);
+        btn.disabled = true;
+        alert('Verified!');
+    } catch (e) {
+        console.error(e);
+        alert('Could not verify');
+    }
+}
 
 function updateZone() {
     const zone = zoneSelect.value;
@@ -248,6 +339,35 @@ document.getElementById("desc")
 =============================== */
 
 let verifyCount = 0;
+
+async function verifyIssue() {
+    if (!lastTracked || !lastTracked._id) {
+        alert("Please track a complaint before verifying.");
+        return;
+    }
+    if (hasVerified(lastTracked._id)) {
+        alert("You have already verified this complaint.");
+        const btn = document.querySelector(".crowd-box button");
+        if (btn) btn.disabled = true;
+        return;
+    }
+
+    try {
+        const res = await fetch(`/api/complaints/${lastTracked._id}/verify`, {
+            method: "PUT"
+        });
+        const updated = await res.json();
+        verifyCount = updated.verifications || 0;
+        document.getElementById("verifyCount").innerText = verifyCount;
+        markVerified(lastTracked._id);
+        const btn = document.querySelector(".crowd-box button");
+        if (btn) btn.disabled = true;
+        alert("Thanks for verifying!");
+    } catch (err) {
+        console.error(err);
+        alert("Failed to verify complaint.");
+    }
+}
 /* ===============================
    SHOW USER EMAIL ON TOP
 ================================ */
