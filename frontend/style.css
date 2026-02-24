@@ -1228,4 +1228,97 @@ body.dark .glass {
     display: flex;
     flex-direction: column;
     gap: 12px;
+}/* ===========================
+   ?? MOBILE RESPONSIVENESS
+   =========================== */
+
+/* Small phones (320px - 480px) */
+@media (max-width: 480px) {
+    body { font-size: 14px; }
+    
+    header {
+        flex-direction: column;
+        gap: 10px;
+        padding: 10px 15px;
+        text-align: center;
+    }
+
+    .logo { justify-content: center; }
+    .logo h1 { font-size: 18px; margin: 0; }
+    .logo span { font-size: 12px; }
+
+    .top-controls {
+        width: 100%;
+        display: flex;
+        gap: 8px;
+        justify-content: center;
+    }
+
+    .ctrl-btn { padding: 6px 10px; font-size: 12px; }
+
+    .cards {
+        flex-direction: column;
+        gap: 10px;
+        padding: 10px;
+    }
+
+    .card { padding: 12px; }
+    .card h3 { font-size: 14px; margin: 0 0 8px 0; }
+    .card p { font-size: 20px; margin: 0; }
+
+    main { padding: 10px 0; }
+
+    .form-section, .track, .analytics, .contacts, .zone-analytics, .share, .zone {
+        margin: 10px;
+        padding: 12px;
+        border-radius: 12px;
+    }
+
+    h2 { font-size: 16px; margin: 10px 0; }
+    label { font-size: 12px; display: block; margin: 6px 0 4px 0; }
+    select, input[type="text"], textarea {
+        width: 100%;
+        padding: 8px;
+        font-size: 14px;
+        box-sizing: border-box;
+    }
+
+    textarea { min-height: 80px; }
+
+    button { padding: 12px; font-size: 14px; margin-top: 8px; }
+    .submit { padding: 14px; font-size: 14px; }
+    .submit::before { font-size: 18px; }
+
+    .map-box iframe { height: 200px; }
+    #preview { max-height: 150px; }
+
+    .complaint-card { padding: 8px; font-size: 12px; }
+    .contact-card { padding: 10px; font-size: 12px; }
+
+    #trackResult { font-size: 12px; padding: 8px; }
+
+    .crowd-box, .severity-box { padding: 10px; margin: 8px 0; }
+    .crowd-box h3, .severity-box h3 { font-size: 14px; }
+    .crowd-box p { font-size: 12px; }
+
+    .share-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .share-grid button { padding: 10px; font-size: 12px; }
+
+    .login-card { width: 90vw; max-width: 300px; padding: 15px; }
+    .login-card h3 { font-size: 14px; }
+}
+
+/* Medium phones (481px - 768px) */
+@media (max-width: 768px) and (min-width: 481px) {
+    header { flex-wrap: wrap; gap: 10px; }
+    .cards { gap: 12px; }
+    main { padding: 15px; }
+    h2 { font-size: 18px; }
+    .share-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+    button { min-height: 44px; min-width: 44px; }
+    button:active { opacity: 0.8; }
 }
