@@ -1,0 +1,22 @@
+[build]
+  publish = "frontend"
+  functions = "netlify/functions"
+
+[functions]
+  node_bundler = "esbuild"
+
+# Redirect /api/complaints/* to the serverless function
+[[redirects]]
+  from = "/api/complaints/*"
+  to = "/.netlify/functions/complaints/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/api/complaints"
+  to = "/.netlify/functions/complaints"
+  status = 200
+
+[[redirects]]
+  from = "/health"
+  to = "/.netlify/functions/complaints"
+  status = 200
